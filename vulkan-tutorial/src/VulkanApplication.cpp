@@ -49,6 +49,7 @@ void VulkanApplication::initVulkan()
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
+    createSwapchain();
 }
 
 //---------------------------------
@@ -69,7 +70,7 @@ void VulkanApplication::createInstance()
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
-    std::vector<const char*> requiredExtensions = getRequiredExtensions();
+    std::vector<const char*> requiredExtensions = getRequiredInstanceExtensions();
     if (!checkRequiredInstanceExtensionsSupport(requiredExtensions)) {
         throw std::runtime_error("ERROR VulkanApplication::createInstance() Not all required instance extensions are supported.");
     }
@@ -239,8 +240,8 @@ void VulkanApplication::createLogicalDevice()
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.enabledLayerCount = 0; // enabledLayerCount is deprecated and should not be used
     createInfo.ppEnabledLayerNames = nullptr; // ppEnabledLayerNames is deprecated and should not be used
-    createInfo.enabledExtensionCount = 0;
-    createInfo.ppEnabledExtensionNames = nullptr;
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(REQUIRED_DEVICE_EXTENSIONS.size());
+    createInfo.ppEnabledExtensionNames = REQUIRED_DEVICE_EXTENSIONS.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
 
     if (vkCreateDevice(m_VkPhysicalDevice, &createInfo, nullptr, &m_VkDevice) != VK_SUCCESS) {
@@ -249,6 +250,51 @@ void VulkanApplication::createLogicalDevice()
 
     vkGetDeviceQueue(m_VkDevice, indices.graphicsFamily.value(), 0, &m_VkGraphicsQueue);
     vkGetDeviceQueue(m_VkDevice, indices.presentFamily.value(), 0, &m_VkPresentQueue);
+}
+
+//---------------------------------
+// createSwapchain()
+//---------------------------------
+void VulkanApplication::createSwapchain()
+{
+    SwapchainSupportDetails swapchainSupportDetails = querySwapchainSupport(m_VkPhysicalDevice, m_VkSurface);
+
+    m_SurfaceFormat = chooseSwapSurfaceFormat(swapchainSupportDetails.formats);
+    m_PresentMode = chooseSwapPresentMode(swapchainSupportDetails.presentModes);
+    m_Extent = chooseSwapExtent(swapchainSupportDetails.capabilities, m_GLFWwindow);
+
+    uint32_t imageCount = swapchainSupportDetails.capabilities.minImageCount + 1;
+    if (swapchainSupportDetails.capabilities.maxImageCount > 0) {
+        imageCount = std::min(imageCount, swapchainSupportDetails.capabilities.maxImageCount);
+    }
+
+    VkSwapchainCreateInfoKHR createInfo;
+    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.pNext = nullptr;
+    createInfo.flags = 0;
+    createInfo.surface = m_VkSurface;
+    createInfo.minImageCount = imageCount;
+    createInfo.imageFormat = m_SurfaceFormat.format;
+    createInfo.imageColorSpace = m_SurfaceFormat.colorSpace;
+    createInfo.imageExtent = m_Extent;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    createInfo.queueFamilyIndexCount = 0;
+    createInfo.pQueueFamilyIndices = nullptr;
+    createInfo.preTransform = swapchainSupportDetails.capabilities.currentTransform;
+    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    createInfo.presentMode = m_PresentMode;
+    createInfo.clipped = VK_TRUE;
+    createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+    if (vkCreateSwapchainKHR(m_VkDevice, &createInfo, nullptr, &m_VkSwapchain) != VK_SUCCESS) {
+        throw std::runtime_error("ERROR VulkanApplication::createSwapchain() Failed to create swap chain!");
+    }
+
+    vkGetSwapchainImagesKHR(m_VkDevice, m_VkSwapchain, &imageCount, nullptr);
+    m_SwapchainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(m_VkDevice, m_VkSwapchain, &imageCount, m_SwapchainImages.data());
 }
 
 //---------------------------------
@@ -266,6 +312,8 @@ void VulkanApplication::mainLoop()
 //---------------------------------
 void VulkanApplication::cleanup()
 {
+    vkDestroySwapchainKHR(m_VkDevice, m_VkSwapchain, nullptr);
+
     vkDestroyDevice(m_VkDevice, nullptr);
 
     DestroyDebugUtilsMessengerEXT(m_VkInstance, m_VkDebugMessenger, nullptr);

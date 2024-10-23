@@ -4,6 +4,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <vector>
+
 //---------------------------------
 // class VulkanApplication
 //---------------------------------
@@ -30,19 +32,25 @@ private:
     void createSurface();
     void pickPhysicalDevice();
     void createLogicalDevice();
+    void createSwapchain();
 
     void mainLoop();
     
     void cleanup();
 
-    GLFWwindow* m_GLFWwindow                    { nullptr };
-    VkInstance m_VkInstance                     { nullptr };
-    VkDebugUtilsMessengerEXT m_VkDebugMessenger { nullptr };
-    VkSurfaceKHR m_VkSurface                    { nullptr };
-    VkPhysicalDevice m_VkPhysicalDevice         { nullptr };
-    VkDevice m_VkDevice                         { nullptr };
-    VkQueue m_VkGraphicsQueue                   { nullptr };
-    VkQueue m_VkPresentQueue                    { nullptr };
+    GLFWwindow*              m_GLFWwindow        { nullptr };
+    VkInstance               m_VkInstance        { nullptr };
+    VkDebugUtilsMessengerEXT m_VkDebugMessenger  { nullptr };
+    VkSurfaceKHR             m_VkSurface         { nullptr };
+    VkPhysicalDevice         m_VkPhysicalDevice  { nullptr };
+    VkDevice                 m_VkDevice          { nullptr };
+    VkQueue                  m_VkGraphicsQueue   { nullptr };
+    VkQueue                  m_VkPresentQueue    { nullptr };
+    VkSwapchainKHR           m_VkSwapchain       { nullptr };
+    std::vector<VkImage>     m_SwapchainImages;
+    VkSurfaceFormatKHR       m_SurfaceFormat     {};
+    VkPresentModeKHR         m_PresentMode       {};
+    VkExtent2D               m_Extent            {};
 };
 
 #endif
