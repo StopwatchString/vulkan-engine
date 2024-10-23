@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <set>
 
 //---------------------------------
 // run()
@@ -45,7 +46,9 @@ void VulkanApplication::initVulkan()
 {
     createInstance();
     setupDebugMessenger();
+    createSurface();
     pickPhysicalDevice();
+    createLogicalDevice();
 }
 
 //---------------------------------
@@ -107,8 +110,18 @@ void VulkanApplication::setupDebugMessenger()
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 
-    if (CreateDebugUtilsMessengerEXT(m_VkInstance, &createInfo, nullptr, &m_DebugMessenger) != VK_SUCCESS) {
+    if (CreateDebugUtilsMessengerEXT(m_VkInstance, &createInfo, nullptr, &m_VkDebugMessenger) != VK_SUCCESS) {
         throw std::runtime_error("ERROR VulkanApplication::setupDebugMessenger() CreateDebugUtilsMessengerEXT() failed");
+    }
+}
+
+//---------------------------------
+// createSurface()
+//---------------------------------
+void VulkanApplication::createSurface()
+{
+    if (glfwCreateWindowSurface(m_VkInstance, m_GLFWwindow, nullptr, &m_VkSurface) != VK_SUCCESS) {
+        throw std::runtime_error("ERROR VulkanApplication::createSurface() Failed to create window surface!");
     }
 }
 
@@ -123,13 +136,13 @@ void VulkanApplication::pickPhysicalDevice()
     }
 
     for (const VkPhysicalDevice& physicalDevice : physicalDevices) {
-        if (isPhysicalDeviceSuitable(physicalDevice)) {
-            m_PhysicalDevice = physicalDevice;
+        if (isPhysicalDeviceSuitable(physicalDevice, m_VkSurface)) {
+            m_VkPhysicalDevice = physicalDevice;
             break;
         }
     }
 
-    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+    if (m_VkPhysicalDevice == VK_NULL_HANDLE) {
         throw std::runtime_error("ERROR VulkanApplication::pickPhysicalDevice() No suitable physical device is present!");
     }
 }
@@ -139,17 +152,26 @@ void VulkanApplication::pickPhysicalDevice()
 //---------------------------------
 void VulkanApplication::createLogicalDevice()
 {
-    QueueFamilyIndices indices = findQueueFamilies(m_PhysicalDevice);
+    QueueFamilyIndices indices = findQueueFamilies(m_VkPhysicalDevice, m_VkSurface);
 
     float queuePriority = 1.0f;
 
-    VkDeviceQueueCreateInfo queueCreateInfo;
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.pNext = nullptr;
-    queueCreateInfo.flags = 0;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.has_value();
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = {
+        indices.graphicsFamily.value(),
+        indices.presentFamily.value()
+    };
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo;
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.pNext = nullptr;
+        queueCreateInfo.flags = 0;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
 
     // All VK_FALSE for now
     VkPhysicalDeviceFeatures deviceFeatures;
@@ -213,19 +235,20 @@ void VulkanApplication::createLogicalDevice()
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pNext = nullptr;
     createInfo.flags = 0;
-    createInfo.queueCreateInfoCount = 1;
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.enabledLayerCount = 0; // enabledLayerCount is deprecated and should not be used
     createInfo.ppEnabledLayerNames = nullptr; // ppEnabledLayerNames is deprecated and should not be used
-    createInfo.enabledExtensionCount;
-    createInfo.ppEnabledExtensionNames;
+    createInfo.enabledExtensionCount = 0;
+    createInfo.ppEnabledExtensionNames = nullptr;
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_Device) != VK_SUCCESS) {
-        throw std::runtime_error("VulkanApplication::createLogicalDevice() Failed to create logical device!");
+    if (vkCreateDevice(m_VkPhysicalDevice, &createInfo, nullptr, &m_VkDevice) != VK_SUCCESS) {
+        throw std::runtime_error("ERROR VulkanApplication::createLogicalDevice() Failed to create logical device!");
     }
 
-    vkGetDeviceQueue(m_Device, indices.graphicsFamily.value(), 0, &m_GraphicsQueue);
+    vkGetDeviceQueue(m_VkDevice, indices.graphicsFamily.value(), 0, &m_VkGraphicsQueue);
+    vkGetDeviceQueue(m_VkDevice, indices.presentFamily.value(), 0, &m_VkPresentQueue);
 }
 
 //---------------------------------
@@ -243,10 +266,11 @@ void VulkanApplication::mainLoop()
 //---------------------------------
 void VulkanApplication::cleanup()
 {
-    vkDestroyDevice(m_Device, nullptr);
+    vkDestroyDevice(m_VkDevice, nullptr);
 
-    DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
+    DestroyDebugUtilsMessengerEXT(m_VkInstance, m_VkDebugMessenger, nullptr);
 
+    vkDestroySurfaceKHR(m_VkInstance, m_VkSurface, nullptr);
     vkDestroyInstance(m_VkInstance, nullptr);
 
     glfwDestroyWindow(m_GLFWwindow);

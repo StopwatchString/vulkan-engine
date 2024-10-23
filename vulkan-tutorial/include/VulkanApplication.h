@@ -27,6 +27,7 @@ private:
     void initVulkan();
     void createInstance();
     void setupDebugMessenger();
+    void createSurface();
     void pickPhysicalDevice();
     void createLogicalDevice();
 
@@ -34,12 +35,14 @@ private:
     
     void cleanup();
 
-    GLFWwindow* m_GLFWwindow                  { nullptr };
-    VkInstance m_VkInstance                   { nullptr };
-    VkDebugUtilsMessengerEXT m_DebugMessenger { nullptr };
-    VkPhysicalDevice m_PhysicalDevice         { nullptr };
-    VkDevice m_Device                         { nullptr };
-    VkQueue m_GraphicsQueue                   { nullptr };
+    GLFWwindow* m_GLFWwindow                    { nullptr };
+    VkInstance m_VkInstance                     { nullptr };
+    VkDebugUtilsMessengerEXT m_VkDebugMessenger { nullptr };
+    VkSurfaceKHR m_VkSurface                    { nullptr };
+    VkPhysicalDevice m_VkPhysicalDevice         { nullptr };
+    VkDevice m_VkDevice                         { nullptr };
+    VkQueue m_VkGraphicsQueue                   { nullptr };
+    VkQueue m_VkPresentQueue                    { nullptr };
 };
 
 #endif

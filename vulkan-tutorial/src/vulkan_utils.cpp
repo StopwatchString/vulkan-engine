@@ -54,19 +54,25 @@ std::vector<VkPhysicalDevice> getPhysicalDevices(const VkInstance& instance)
 //---------------------------------
 // findQueueFamilies()
 //---------------------------------
-QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice& device)
+QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice, const VkSurfaceKHR& surface)
 {
     QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
 
     for (int i = 0; i < queueFamilies.size(); i++) {
         if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.graphicsFamily = i;
+        }
+
+        VkBool32 presentSupport = VK_FALSE;
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
+        if (presentSupport) {
+            indices.presentFamily = i;
         }
 
         if (indices.isComplete()) break;
@@ -126,7 +132,7 @@ bool checkRequiredInstanceExtensionsSupport(std::vector<const char*> requiredExt
 //---------------------------------
 // isPhysicalDeviceSuitable()
 //---------------------------------
-bool isPhysicalDeviceSuitable(const VkPhysicalDevice& physicalDevice)
+bool isPhysicalDeviceSuitable(const VkPhysicalDevice& physicalDevice, const VkSurfaceKHR& surface)
 {
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
@@ -134,7 +140,7 @@ bool isPhysicalDeviceSuitable(const VkPhysicalDevice& physicalDevice)
     VkPhysicalDeviceFeatures deviceFeatures;
     vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
 
-    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
 
     return indices.isComplete();
 }
