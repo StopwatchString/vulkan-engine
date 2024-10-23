@@ -1,3 +1,4 @@
 ﻿vulkan-tutorial/.vs
 vulkan-tutorial/vulkan-tutorial
 vulkan-tutorial/x64
+*.spv

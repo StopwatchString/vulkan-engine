@@ -36,6 +36,9 @@
     <ClCompile Include="src\vulkan_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\GLFW\glfw3.h">
@@ -917,6 +920,9 @@
     <ClInclude Include="include\vulkan_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\glm\detail\func_common.inl">
@@ -1332,6 +1338,12 @@
     </None>
     <None Include="include\glm\gtx\wrap.inl">
       <Filter>Header Files\glm</Filter>
+    </None>
+    <None Include="res\default.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\default.vert">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
 </Project>

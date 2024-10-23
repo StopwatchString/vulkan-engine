@@ -34,6 +34,7 @@ private:
     void createLogicalDevice();
     void createSwapchain();
     void createImageViews();
+    void createGraphicsPipeline();
 
     void mainLoop();
     

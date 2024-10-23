@@ -2,6 +2,7 @@
 
 #include "constants.h"
 #include "vulkan_utils.h"
+#include "utils.h"
 
 #include <stdexcept>
 #include <vector>
@@ -327,6 +328,41 @@ void VulkanApplication::createImageViews()
             throw std::runtime_error("ERROR VulkanApplication::createImageViews() Failed to create swapchain image views!");
         }
     }
+}
+
+//---------------------------------
+// createGraphicsPipeline()
+//---------------------------------
+void VulkanApplication::createGraphicsPipeline()
+{
+    std::vector<char> vertShaderCode = readFile("shaders/vert.spv");
+    std::vector<char> fragShaderCode = readFile("shaders/frag.spv");
+
+    VkShaderModule vertShaderModule = createShaderModule(m_VkDevice, vertShaderCode);
+    VkShaderModule fragShaderModule = createShaderModule(m_VkDevice, fragShaderCode);
+
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo;
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.pNext = nullptr;
+    vertShaderStageInfo.flags = 0;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderStageInfo.module = vertShaderModule;
+    vertShaderStageInfo.pName = "main";
+    vertShaderStageInfo.pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo;
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.pNext = nullptr;
+    fragShaderStageInfo.flags = 0;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderStageInfo.module = fragShaderModule;
+    fragShaderStageInfo.pName = "main";
+    fragShaderStageInfo.pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+
+    vkDestroyShaderModule(m_VkDevice, vertShaderModule, nullptr);
+    vkDestroyShaderModule(m_VkDevice, fragShaderModule, nullptr);
 }
 
 //---------------------------------

@@ -38,7 +38,10 @@ bool checkRequiredInstanceExtensionsSupport(std::vector<const char*> requiredExt
 bool isPhysicalDeviceSuitable(const VkPhysicalDevice& physicalDevice, const VkSurfaceKHR& surface);
 bool checkDeviceExtensionSupport(const VkPhysicalDevice& physicalDevice);
 
+VkShaderModule createShaderModule(const VkDevice& device, const std::vector<char>& code);
+
 void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
