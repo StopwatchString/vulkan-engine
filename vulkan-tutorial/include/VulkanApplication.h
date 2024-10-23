@@ -28,6 +28,7 @@ private:
     void createInstance();
     void setupDebugMessenger();
     void pickPhysicalDevice();
+    void createLogicalDevice();
 
     void mainLoop();
     
@@ -37,6 +38,8 @@ private:
     VkInstance m_VkInstance                   { nullptr };
     VkDebugUtilsMessengerEXT m_DebugMessenger { nullptr };
     VkPhysicalDevice m_PhysicalDevice         { nullptr };
+    VkDevice m_Device                         { nullptr };
+    VkQueue m_GraphicsQueue                   { nullptr };
 };
 
 #endif

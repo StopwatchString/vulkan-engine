@@ -119,7 +119,7 @@ void VulkanApplication::pickPhysicalDevice()
 {
     std::vector<VkPhysicalDevice> physicalDevices = getPhysicalDevices(m_VkInstance);
     if (physicalDevices.size() == 0) {
-        throw std::runtime_error("ERROR VulkanApplication::pickPhysicalDevice() No phyiscal devices present!");
+        throw std::runtime_error("ERROR VulkanApplication::pickPhysicalDevice() No physical devices present!");
     }
 
     for (const VkPhysicalDevice& physicalDevice : physicalDevices) {
@@ -132,6 +132,100 @@ void VulkanApplication::pickPhysicalDevice()
     if (m_PhysicalDevice == VK_NULL_HANDLE) {
         throw std::runtime_error("ERROR VulkanApplication::pickPhysicalDevice() No suitable physical device is present!");
     }
+}
+
+//---------------------------------
+// createLogicalDevice()
+//---------------------------------
+void VulkanApplication::createLogicalDevice()
+{
+    QueueFamilyIndices indices = findQueueFamilies(m_PhysicalDevice);
+
+    float queuePriority = 1.0f;
+
+    VkDeviceQueueCreateInfo queueCreateInfo;
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.pNext = nullptr;
+    queueCreateInfo.flags = 0;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.has_value();
+    queueCreateInfo.queueCount = 1;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    // All VK_FALSE for now
+    VkPhysicalDeviceFeatures deviceFeatures;
+    deviceFeatures.robustBufferAccess = VK_FALSE;
+    deviceFeatures.fullDrawIndexUint32 = VK_FALSE;
+    deviceFeatures.imageCubeArray = VK_FALSE;
+    deviceFeatures.independentBlend = VK_FALSE;
+    deviceFeatures.geometryShader = VK_FALSE;
+    deviceFeatures.tessellationShader = VK_FALSE;
+    deviceFeatures.sampleRateShading = VK_FALSE;
+    deviceFeatures.dualSrcBlend = VK_FALSE;
+    deviceFeatures.logicOp = VK_FALSE;
+    deviceFeatures.multiDrawIndirect = VK_FALSE;
+    deviceFeatures.drawIndirectFirstInstance = VK_FALSE;
+    deviceFeatures.depthClamp = VK_FALSE;
+    deviceFeatures.depthBiasClamp = VK_FALSE;
+    deviceFeatures.fillModeNonSolid = VK_FALSE;
+    deviceFeatures.depthBounds = VK_FALSE;
+    deviceFeatures.wideLines = VK_FALSE;
+    deviceFeatures.largePoints = VK_FALSE;
+    deviceFeatures.alphaToOne = VK_FALSE;
+    deviceFeatures.multiViewport = VK_FALSE;
+    deviceFeatures.samplerAnisotropy = VK_FALSE;
+    deviceFeatures.textureCompressionETC2 = VK_FALSE;
+    deviceFeatures.textureCompressionASTC_LDR = VK_FALSE;
+    deviceFeatures.textureCompressionBC = VK_FALSE;
+    deviceFeatures.occlusionQueryPrecise = VK_FALSE;
+    deviceFeatures.pipelineStatisticsQuery = VK_FALSE;
+    deviceFeatures.vertexPipelineStoresAndAtomics = VK_FALSE;
+    deviceFeatures.fragmentStoresAndAtomics = VK_FALSE;
+    deviceFeatures.shaderTessellationAndGeometryPointSize = VK_FALSE;
+    deviceFeatures.shaderImageGatherExtended = VK_FALSE;
+    deviceFeatures.shaderStorageImageExtendedFormats = VK_FALSE;
+    deviceFeatures.shaderStorageImageMultisample = VK_FALSE;
+    deviceFeatures.shaderStorageImageReadWithoutFormat = VK_FALSE;
+    deviceFeatures.shaderStorageImageWriteWithoutFormat = VK_FALSE;
+    deviceFeatures.shaderUniformBufferArrayDynamicIndexing = VK_FALSE;
+    deviceFeatures.shaderSampledImageArrayDynamicIndexing = VK_FALSE;
+    deviceFeatures.shaderStorageBufferArrayDynamicIndexing = VK_FALSE;
+    deviceFeatures.shaderStorageImageArrayDynamicIndexing = VK_FALSE;
+    deviceFeatures.shaderClipDistance = VK_FALSE;
+    deviceFeatures.shaderCullDistance = VK_FALSE;
+    deviceFeatures.shaderFloat64 = VK_FALSE;
+    deviceFeatures.shaderInt64 = VK_FALSE;
+    deviceFeatures.shaderInt16 = VK_FALSE;
+    deviceFeatures.shaderResourceResidency = VK_FALSE;
+    deviceFeatures.shaderResourceMinLod = VK_FALSE;
+    deviceFeatures.sparseBinding = VK_FALSE;
+    deviceFeatures.sparseResidencyBuffer = VK_FALSE;
+    deviceFeatures.sparseResidencyImage2D = VK_FALSE;
+    deviceFeatures.sparseResidencyImage3D = VK_FALSE;
+    deviceFeatures.sparseResidency2Samples = VK_FALSE;
+    deviceFeatures.sparseResidency4Samples = VK_FALSE;
+    deviceFeatures.sparseResidency8Samples = VK_FALSE;
+    deviceFeatures.sparseResidency16Samples = VK_FALSE;
+    deviceFeatures.sparseResidencyAliased = VK_FALSE;
+    deviceFeatures.variableMultisampleRate = VK_FALSE;
+    deviceFeatures.inheritedQueries = VK_FALSE;
+
+    VkDeviceCreateInfo createInfo;
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pNext = nullptr;
+    createInfo.flags = 0;
+    createInfo.queueCreateInfoCount = 1;
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.enabledLayerCount = 0; // enabledLayerCount is deprecated and should not be used
+    createInfo.ppEnabledLayerNames = nullptr; // ppEnabledLayerNames is deprecated and should not be used
+    createInfo.enabledExtensionCount;
+    createInfo.ppEnabledExtensionNames;
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_Device) != VK_SUCCESS) {
+        throw std::runtime_error("VulkanApplication::createLogicalDevice() Failed to create logical device!");
+    }
+
+    vkGetDeviceQueue(m_Device, indices.graphicsFamily.value(), 0, &m_GraphicsQueue);
 }
 
 //---------------------------------
@@ -149,6 +243,8 @@ void VulkanApplication::mainLoop()
 //---------------------------------
 void VulkanApplication::cleanup()
 {
+    vkDestroyDevice(m_Device, nullptr);
+
     DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
 
     vkDestroyInstance(m_VkInstance, nullptr);
