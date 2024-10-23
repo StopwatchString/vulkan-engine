@@ -5,10 +5,20 @@
 #include <GLFW/glfw3.h>
 
 #include <vector>
+#include <optional>
 
 std::vector<VkExtensionProperties> getVkInstanceExtensionProperties();
 std::vector<const char*> getRequiredExtensions();
 std::vector<VkPhysicalDevice> getPhysicalDevices(const VkInstance& instance);
+
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value();
+    }
+};
+QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice& device);
 
 bool checkValidationLayerSupport();
 bool checkRequiredInstanceExtensionsSupport(std::vector<const char*> requiredExtensions);

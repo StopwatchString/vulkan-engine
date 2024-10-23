@@ -52,6 +52,30 @@ std::vector<VkPhysicalDevice> getPhysicalDevices(const VkInstance& instance)
 }
 
 //---------------------------------
+// findQueueFamilies()
+//---------------------------------
+QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice& device)
+{
+    QueueFamilyIndices indices;
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    for (int i = 0; i < queueFamilies.size(); i++) {
+        if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+        }
+
+        if (indices.isComplete()) break;
+    }
+
+    return indices;
+}
+
+//---------------------------------
 // checkValidationLayerSupport()
 //---------------------------------
 bool checkValidationLayerSupport()
@@ -104,7 +128,15 @@ bool checkRequiredInstanceExtensionsSupport(std::vector<const char*> requiredExt
 //---------------------------------
 bool isPhysicalDeviceSuitable(const VkPhysicalDevice& physicalDevice)
 {
-    return true;
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+    return indices.isComplete();
 }
 
 //---------------------------------
