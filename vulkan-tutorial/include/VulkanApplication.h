@@ -34,6 +34,7 @@ private:
     void createLogicalDevice();
     void createSwapchain();
     void createImageViews();
+    void createRenderPass();
     void createGraphicsPipeline();
 
     void mainLoop();
@@ -53,6 +54,9 @@ private:
     VkFormat                 m_Format              {};
     VkExtent2D               m_Extent              {};
     std::vector<VkImageView> m_SwapchainImageViews;
+    VkRenderPass             m_RenderPass          { nullptr };
+    VkPipelineLayout         m_PipelineLayout      { nullptr };
+    VkPipeline               m_GraphicsPipeline    { nullptr };
 };
 
 #endif
