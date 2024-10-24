@@ -51,6 +51,10 @@ void VulkanApplication::initVulkan()
     pickPhysicalDevice();
     createLogicalDevice();
     createSwapchain();
+    createImageViews();
+    createRenderPass();
+    createGraphicsPipeline();
+    
 }
 
 //---------------------------------
@@ -570,6 +574,10 @@ void VulkanApplication::cleanup()
     vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
     vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
     vkDestroyRenderPass(m_VkDevice, m_RenderPass, nullptr);
+
+    for (VkImageView imageView : m_SwapchainImageViews) {
+        vkDestroyImageView(m_VkDevice, imageView, nullptr);
+    }
 
     vkDestroySwapchainKHR(m_VkDevice, m_VkSwapchain, nullptr);
 
