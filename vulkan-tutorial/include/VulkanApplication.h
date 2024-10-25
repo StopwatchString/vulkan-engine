@@ -37,28 +37,39 @@ private:
     void createRenderPass();
     void createGraphicsPipeline();
     void createFramebuffers();
+    void createCommandPool();
+    void createCommandBuffer();
+    void createSyncObjects();
+
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     void mainLoop();
+    void drawFrame();
     
     void cleanup();
 
-    GLFWwindow*                m_GLFWwindow            { nullptr };
-    VkInstance                 m_VkInstance            { nullptr };
-    VkDebugUtilsMessengerEXT   m_VkDebugMessenger      { nullptr };
-    VkSurfaceKHR               m_VkSurface             { nullptr };
-    VkPhysicalDevice           m_VkPhysicalDevice      { nullptr };
-    VkDevice                   m_VkDevice              { nullptr };
-    VkQueue                    m_VkGraphicsQueue       { nullptr };
-    VkQueue                    m_VkPresentQueue        { nullptr };
-    VkSwapchainKHR             m_VkSwapchain           { nullptr };
+    GLFWwindow*                m_GLFWwindow              { nullptr };
+    VkInstance                 m_VkInstance              { nullptr };
+    VkDebugUtilsMessengerEXT   m_VkDebugMessenger        { nullptr };
+    VkSurfaceKHR               m_VkSurface               { nullptr };
+    VkPhysicalDevice           m_VkPhysicalDevice        { nullptr };
+    VkDevice                   m_VkDevice                { nullptr };
+    VkQueue                    m_VkGraphicsQueue         { nullptr };
+    VkQueue                    m_VkPresentQueue          { nullptr };
+    VkSwapchainKHR             m_VkSwapchain             { nullptr };
     std::vector<VkImage>       m_SwapchainImages;
-    VkFormat                   m_Format                {};
-    VkExtent2D                 m_Extent                {};
+    VkFormat                   m_Format                  {};
+    VkExtent2D                 m_Extent                  {};
     std::vector<VkImageView>   m_SwapchainImageViews;
-    VkRenderPass               m_RenderPass            { nullptr };
-    VkPipelineLayout           m_PipelineLayout        { nullptr };
-    VkPipeline                 m_GraphicsPipeline      { nullptr };
+    VkRenderPass               m_RenderPass              { nullptr };
+    VkPipelineLayout           m_PipelineLayout          { nullptr };
+    VkPipeline                 m_GraphicsPipeline        { nullptr };
     std::vector<VkFramebuffer> m_SwapchainFramebuffers;
+    VkCommandPool              m_CommandPool             { nullptr };
+    VkCommandBuffer            m_CommandBuffer           { nullptr };
+    VkSemaphore                m_ImageAvailableSemaphore { nullptr };
+    VkSemaphore                m_RenderFinishedSemaphore { nullptr };
+    VkFence                    m_InFlightFence           { nullptr };
 };
 
 #endif
