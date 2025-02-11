@@ -4,11 +4,8 @@
 
 int main()
 {
-
-    VulkanApplication app;
-
     try {
-        app.run();
+        VulkanApp::run();
     }
     catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
